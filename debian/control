@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 7), cdbs,
                epics-dev (>= 3.14.10-4), epics-dev (<< 3.14.11),
                epics-extensions-dev (>= 20091204),
                htmldoc,
-               libmotif-dev, libx11-dev, libxmu-dev, libxtst-dev
+               libmotif-dev, libx11-dev, libxp-dev, libxmu-dev, libxtst-dev
 Standards-Version: 3.8.0
 Homepage: http://www.aps.anl.gov/epics/extensions/alh/index.php
 
