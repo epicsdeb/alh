@@ -15,7 +15,7 @@
 #
 # Makefile,v 1.16 2007/10/02 19:08:22 jba Exp
 #
-TOP=../..
+TOP=.
 include $(TOP)/configure/CONFIG
 
 #===========================
