@@ -1,3 +1,9 @@
+alh (1.2.24-2) unstable; urgency=low
+
+  * Fix dependencies
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Fri, 04 Dec 2009 10:04:35 -0500
+
 alh (1.2.24-1) unstable; urgency=low
 
   * Initial release
