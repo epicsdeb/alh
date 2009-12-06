@@ -13,7 +13,7 @@
 # in the file LICENSE that is included with this distribution. 
 #*************************************************************************
 #
-# Makefile,v 1.16 2007/10/02 19:08:22 jba Exp
+# Makefile,v 1.18 2008/12/03 17:20:17 jba Exp
 #
 TOP=.
 include $(TOP)/configure/CONFIG
@@ -25,9 +25,11 @@ ifeq ($(OS_CLASS), Darwin)
 GCC_OPT_YES = -O2
 endif
 
+# For purify, EPICS base must not use READLINE 
 #HOST_OPT=NO
+#DEBUGCMD = purify -first-only -chain-length=40 -max_threads=256
 #DEBUGCMD = purify -first-only -chain-length=40 -max_threads=256 \
-           -always-use-cache-dir -cache-dir=$(shell $(PERL) $(TOP)/config/fullPathName.pl .)
+#           -always-use-cache-dir -cache-dir=$(shell $(PERL) $(TOP)/config/fullPathName.pl .)
 #DEBUGCMD = purify -first-only -chain-length=40 -max_threads=256 \
 #           -always-use-cache-dir -cache-dir=$(shell $(PERL) $(TOOLS)/fullPathName.pl .)
 
@@ -166,7 +168,7 @@ endif
 
 PROD_LIBS += Com
 PROD_LIBS_DEFAULT += Xmu Xm Xt X11
-PROD_LIBS_Linux +=  Xmu Xm Xt X11 Xp
+PROD_LIBS_Linux +=  Xmu Xm Xt X11
 PROD_LIBS_Darwin +=  Xmu Xm Xt X11
 
 PROD_LIBS_WIN32 += $(EXCEED_XLIBS)
@@ -180,7 +182,6 @@ Xmu_DIR = $(X11_LIB)
 Xm_DIR = $(MOTIF_LIB)
 Xt_DIR = $(X11_LIB)
 X11_DIR = $(X11_LIB)
-Xp_DIR = $(MOTIF_LIB)
 
 RCS_WIN32 += alh.rc
 

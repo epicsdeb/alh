@@ -14,10 +14,11 @@
 \*************************************************************************/
 /* alAudio.c 
  *
- * alAudio.c,v 1.3 2003/02/27 17:20:08 jba Exp
+ * alAudio.c,v 1.4 2009/10/15 14:50:20 jba Exp
  *
  */
 
+#include <stdlib.h>
 #include "alh.h"
 
 /* Audio device not implemented */
@@ -27,6 +28,7 @@
 ******************************************************/
 int alBeep(Display *displayBB)
 {
+	/* system("play /path/to/beep.wav"); */
 	XBell(displayBB,0);
 	return 0;
 }
