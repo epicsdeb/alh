@@ -23,8 +23,6 @@ DEB_MAKE_CHECK_TARGET =
 # prevent debug targets from being stripped
 DEB_DH_STRIP_ARGS := -Xdebug
 
-DEB_INSTALL_DOCS_alh-doc := documentation/*
-
 post-patches:: configure
 
 configure:
@@ -33,6 +31,10 @@ configure:
 install/alh::
 	mv $(CURDIR)/debian/tmp/usr/bin/$(EPICS_HOST_ARCH)/alh* $(CURDIR)/debian/tmp/usr/bin
 	rmdir $(CURDIR)/debian/tmp/usr/bin/$(EPICS_HOST_ARCH)
+
+install/alh-doc::
+	install -d $(CURDIR)/debian/tmp/usr/share/doc/alh
+	cp -r documentation/* $(CURDIR)/debian/tmp/usr/share/doc/alh/
 
 clean::
 	rm -rf bin O.$(EPICS_HOST_ARCH)

@@ -10,18 +10,19 @@ Build-Depends: debhelper (>= 7), cdbs,
 Standards-Version: 3.8.0
 Homepage: http://www.aps.anl.gov/epics/extensions/alh/index.php
 
-Package: alh-doc
-Section: doc
-Architecture: all
-Description: EPICS Alarm Handler
- A specialized EPICS client which listens for alarms on a preset list
- of channels.
-
 Package: alh
 Architecture: any
 Depends: epics-libs (>= 3.14.10-4), epics-libs (<< 3.14.11),
          ${shlibs:Depends}, ${misc:Depends},
 Suggests: alh-doc (= ${binary:Version})
+Description: EPICS Alarm Handler
+ A specialized EPICS client which listens for alarms on a preset list
+ of channels.
+
+Package: alh-doc
+Section: doc
+Architecture: all
+Conflicts: alh (<< 1.2.25-1)
 Description: EPICS Alarm Handler
  A specialized EPICS client which listens for alarms on a preset list
  of channels.
