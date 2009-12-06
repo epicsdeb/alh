@@ -1,3 +1,10 @@
+alh (1.2.25-1) unstable; urgency=low
+
+  * New Upstream Version
+  * Move html manual to alh-doc package
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Fri, 04 Dec 2009 10:17:13 -0500
+
 alh (1.2.24-2) unstable; urgency=low
 
   * Fix dependencies
