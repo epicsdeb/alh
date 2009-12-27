@@ -1,3 +1,9 @@
+alh (1.2.25-2) unstable; urgency=low
+
+  * Update dependencies
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Sun, 27 Dec 2009 18:19:29 -0500
+
 alh (1.2.25-1) unstable; urgency=low
 
   * New Upstream Version
