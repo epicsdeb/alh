@@ -3,7 +3,7 @@ Section: admin
 Priority: extra
 Maintainer: Michael Davidsaver <mdavidsaver@bnl.gov>
 Build-Depends: debhelper (>= 7), cdbs,
-               epics-dev (>= 3.14.10-4), epics-dev (<< 3.14.11),
+               epics-dev (>= 3.14.10-10), epics-dev (<< 3.14.11),
                epics-extensions-dev (>= 20091204),
                htmldoc,
                libmotif-dev, libx11-dev, libxp-dev, libxmu-dev, libxtst-dev
@@ -12,8 +12,7 @@ Homepage: http://www.aps.anl.gov/epics/extensions/alh/index.php
 
 Package: alh
 Architecture: any
-Depends: epics-libs (>= 3.14.10-4), epics-libs (<< 3.14.11),
-         ${shlibs:Depends}, ${misc:Depends},
+Depends: ${shlibs:Depends}, ${misc:Depends},
 Suggests: alh-doc (= ${binary:Version})
 Description: EPICS Alarm Handler
  A specialized EPICS client which listens for alarms on a preset list
