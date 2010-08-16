@@ -1,3 +1,9 @@
+alh (1.2.25-3) unstable; urgency=low
+
+  * Base in /usr/lib/epics
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Mon, 16 Aug 2010 17:27:51 -0400
+
 alh (1.2.25-2) unstable; urgency=low
 
   * Update dependencies
