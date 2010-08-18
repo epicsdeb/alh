@@ -1,5 +1,5 @@
 Source: alh
-Section: admin
+Section: contrib/admin
 Priority: extra
 Maintainer: Michael Davidsaver <mdavidsaver@bnl.gov>
 Build-Depends: debhelper (>= 7), cdbs,
@@ -19,7 +19,7 @@ Description: EPICS Alarm Handler
  of channels.
 
 Package: alh-doc
-Section: doc
+Section: contrib/doc
 Architecture: all
 Conflicts: alh (<< 1.2.25-1)
 Description: EPICS Alarm Handler
