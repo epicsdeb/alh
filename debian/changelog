@@ -1,3 +1,9 @@
+alh (1.2.26-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Thu, 08 Mar 2012 11:47:08 -0500
+
 alh (1.2.25-3) unstable; urgency=low
 
   * Base in /usr/lib/epics
