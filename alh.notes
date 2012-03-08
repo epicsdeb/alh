@@ -574,3 +574,17 @@ Mon Aug 18 15:59:03 CDT 2008
 Thu Oct 15 09:44:40 CDT 2009  ALH_1_2_25
 	Removed usage of YES macro for build with base R3.14.11.
 	Added comment in alAudio.c to uncomment/modify for alarm sounds.
+
+Tue Oct 27 15:17:33 CDT 2009
+	Changes to avoid compile warning messages.
+
+Fri Jul  9 15:14:24 CDT 2010 ALH_1_2_26
+	Master/slave locking bug fix from Andreas Luedeke.
+	Rewrote doubleclick code so it works the same on all operating systems.
+	Portablility changes.
+	Bug fix: set current value to -999 to recalculate and test the force pv
+	expression after user changes are Applied from the ForcePV dialog box.
+	Core dump bug fix: Test for existance before trying to modify runtime 
+	window string. Alh may be started with main window only (-mainwindow).
+	Removed references to Alarm Configuration Tool in ALH Users Manual.
+
