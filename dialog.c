@@ -60,8 +60,8 @@ String title,String pattern,String directory)
 	static void *oldCancel=NULL;
 	static XtPointer oldOkParm = 0;
 	static XtPointer oldCancelParm = 0;
+	static Atom WM_DELETE_WINDOW = 0;
 	char file_sel[]="file_sel";
-	Atom WM_DELETE_WINDOW;
 
 	/* parent = 0 means we want to unmanage the fileSelectdialog */
 	if (!parent){

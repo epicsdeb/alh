@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <signal.h>
 #include <errno.h>
+#include <sys/types.h>  
+#include <sys/stat.h>  
 
 #include <Xm/Protocols.h>
 #include <Xm/AtomMgr.h>
@@ -32,6 +34,7 @@
 #include <sys/msg.h>  
 #endif
 
+#ifndef CYGWIN32
 #ifndef WIN32
 /* WIN32 does not have dirent.h used by opendir, closedir */
 #include <sys/stat.h>  
@@ -41,6 +44,7 @@
 #include <fcntl.h>
 #else
 #include <process.h>
+#endif
 #endif
 #include <ctype.h>
 
@@ -114,8 +118,9 @@ unsigned long broadcastMessDelay=2000; /*(msec) periodic mess testing. Albert */
 int _lock_flag=0;                /* Flag for locking. Albert                  */
 char lockFileName[250];          /* FN for lock file. Albert                  */
 int lockFileDeskriptor;          /* FD for lock file. Albert                  */
-unsigned long lockDelay=1000;    /* (msec) periodical masterStatus testing.   */
-int masterFlag=1;                /* am I master for write operations? Albert  */  
+unsigned long lockDelay=20000;   /* (msec) periodical masterStatus testing.   */
+int masterFlag=0;                /* am I master for write operations? Albert  */  
+                                 /* changed from 1 to 0. Stadler */
 void masterTesting();            /* periodical calback of masterStatus testing*/
 extern Widget blinkToplevel;     /* for locking status marking                */
 char masterStr[64],slaveStr[64]; /* titles of Master/Slave +- printer/database*/
@@ -291,12 +296,22 @@ void exit_quit(Widget w, XtPointer clientdata, XtPointer calldata)
 	XtDestroyWidget(topLevelShell);
 	XtDestroyWidget(w);
 	XFreeFont(display,font_info);
+#ifndef CYGWIN32
 #ifndef WIN32
-	if(_lock_flag)  {
-	  lockf(lockFileDeskriptor,F_ULOCK, 0L); /* Albert */
+	if (masterFlag) {
+	  lockf(lockFileDeskriptor,F_ULOCK, 0L);
 	  if (lockTimeoutId) {
 	    XtRemoveTimeOut(lockTimeoutId);
 	  }
+	}
+	if(_lock_flag)  {
+	  /* Moved to above part. Stadler
+
+	  lockf(lockFileDeskriptor,F_ULOCK, 0L);
+	  if (lockTimeoutId) {
+	    XtRemoveTimeOut(lockTimeoutId);
+	  }
+	  */
 	if(_message_broadcast_flag)  {
 	  lockf(messBroadcastDeskriptor, F_ULOCK, 0L); /* Albert */
 	  if (broadcastMessTimeoutId) {
@@ -305,6 +320,7 @@ void exit_quit(Widget w, XtPointer clientdata, XtPointer calldata)
 	}
 
 	} 
+#endif
 #endif
 
 #ifdef CMLOG
@@ -319,7 +335,7 @@ void exit_quit(Widget w, XtPointer clientdata, XtPointer calldata)
 ******************************************************/
 char *shortfile(char *name)
 {
-	int len;
+	size_t len;
 	char *shortname;
 
 	len = strlen(name);
@@ -512,12 +528,12 @@ int programId,Widget widget)
 		/* Display file selection box  */
 		if ( XtIsShell(widget)) {
 			long fileTypeLong=fileType;
+			Atom WM_DELETE_WINDOW;
 			fileSelectionBox = createFileDialog(widget,
 			    (void *)fileSetupCallback, (XtPointer)fileTypeLong,
 			    (void *)exit_quit,(XtPointer)FALSE,
 			    (XtPointer)NULL,
 			    fileTypeString, (String)pattern, dir);
-			Atom WM_DELETE_WINDOW;
 			WM_DELETE_WINDOW = XmInternAtom(XtDisplay(fileSelectionBox),
 			    "WM_DELETE_WINDOW", False);
 			XmAddWMProtocolCallback(XtParent(fileSelectionBox),WM_DELETE_WINDOW,
@@ -577,12 +593,14 @@ int programId,Widget widget)
 				exit(1);
 			      }
                               fclose(fp);     
+#ifndef CYGWIN32
 #ifndef WIN32
 			    if((lockFileDeskriptor=open(lockFileName,O_RDWR,0644)) == 0)
 			      { 
 				perror("Can't open locking file for rw");
 				exit(1);
 			      }
+#endif
 #endif
 			    if (DEBUG) fprintf(stderr,"INIT: deskriptor for %s=%d\n",
 					       lockFileName,lockFileDeskriptor);
@@ -618,6 +636,7 @@ int programId,Widget widget)
 			      }
                               fclose(fpL);
 			      fclose(fpI);
+#ifndef CYGWIN32
 #ifndef WIN32
 			    if((messBroadcastDeskriptor=
 				open(messBroadcastLockFileName,O_RDWR,0644)) == 0)
@@ -625,6 +644,7 @@ int programId,Widget widget)
 				perror("Can't open messBroadcast file for rw");
 				exit(1);
 			      }
+#endif
 #endif
 			    if (DEBUG) fprintf(stderr,"INIT: deskriptor for %s=%d\n",
 					  messBroadcastLockFileName,messBroadcastDeskriptor);
@@ -1052,7 +1072,7 @@ Widget widget;
 int argc;
 char *argv[];
 {
-	int    len;
+	size_t len;
 	char   configFile[NAMEDEFAULT_SIZE];
 	char   logFile[NAMEDEFAULT_SIZE];
 	char   opModFile[NAMEDEFAULT_SIZE];
@@ -1147,12 +1167,16 @@ char *argv[];
 /* *******************************new code. Albert************************************* */
 void masterTesting()
 {
+#ifndef CYGWIN32
 #ifndef WIN32
-        if ( lockf(lockFileDeskriptor, F_TLOCK, 0L) < 0 ) {
+  /* Added "return" if masterFlag is set. Stadler */
+  if (masterFlag)
+	return;
+  if ( lockf(lockFileDeskriptor, F_TLOCK, 0L) < 0 ) {
 	  if ((errno == EAGAIN || errno == EACCES )) {
-	      masterFlag=0;
-	      if(DEBUG) fprintf(stderr,"I'm slave;lockFileDeskriptor=%d\n",lockFileDeskriptor);
-	      XtVaSetValues(blinkToplevel,XmNtitle,slaveStr,NULL);
+	    masterFlag=0;
+	    if(DEBUG) fprintf(stderr,"I'm slave;lockFileDeskriptor=%d\n",lockFileDeskriptor);
+	    XtVaSetValues(blinkToplevel,XmNtitle,slaveStr,NULL);
 	  }
 	  else {
 	    perror("lockf Error!!!!"); /* Albert exit ?????? */
@@ -1162,11 +1186,12 @@ void masterTesting()
 	  {
 	    masterFlag=1;
 	    if(DEBUG) fprintf(stderr,"I'm master;lockFileDeskriptor=%d\n",lockFileDeskriptor);
-            XtVaSetValues(blinkToplevel,XmNtitle,masterStr,NULL);
+	    XtVaSetValues(blinkToplevel,XmNtitle,masterStr,NULL);
 	  }
 	
 	lockTimeoutId = XtAppAddTimeOut(appContext, lockDelay,(XtTimerCallbackProc)masterTesting , NULL);
 
+#endif
 #endif
 }
 
@@ -1265,6 +1290,7 @@ static char real_world_name[128];
 static char displayName[256];
 int ret=0;
 
+#ifndef CYGWIN32
 #ifndef WIN32
 struct passwd *pp;              
 int effective_uid;
@@ -1296,6 +1322,7 @@ int effective_uid;
     userID.real_world_name=real_world_name;
     userID.myhostname=myhostname;
     userID.displayName=displayName;
+#endif
 #endif
     return(ret);
 }
