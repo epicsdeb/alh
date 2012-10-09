@@ -378,7 +378,7 @@ void silenceCurrentReset(void *area)
 {
 	if (psetup.silenceCurrent) {
 		psetup.silenceCurrent = FALSE;
-		if (((ALINK*)area)->silenceCurrent) {
+		if (area && ((ALINK*)area)->silenceCurrent) {
 			XmToggleButtonGadgetSetState(((ALINK*)area)->silenceCurrent,
 			    FALSE,FALSE);
 		}
