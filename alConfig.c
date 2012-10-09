@@ -441,6 +441,37 @@ int context,int caConnect,struct mainGroup *pmainGroup)
 		return;
 	}
 
+	if (strncmp(&buf[1],"BEEPCMD",7)==0) {
+            unsigned int start=8, end = strlen(buf) - 1;
+
+            /* skip leading whitespace to find start of command */
+            for(; start<=end && (buf[start]=='\t' || buf[start]==' '); start++) {}
+
+            if(start>end) {
+                print_error(buf, "expected argument after BEEPCMD");
+                return;
+            }
+
+            /* back track to trim trailing whitespace */
+            for(; end>=start && (buf[end]=='\0' || isspace(buf[end])); end--) {}
+
+            if(end>start) {
+                if(psetup.beepCmd)
+                    free(psetup.beepCmd);
+                psetup.beepCmd = malloc(end-start+2);
+                if(!psetup.beepCmd) {
+                    print_error(buf, "Not enough memory for BEEPCMD");
+                } else {
+                    memcpy(psetup.beepCmd, &buf[start], end-start+1);
+                    psetup.beepCmd[end-start+1] = '\0';
+                }
+            } else {
+                print_error(buf, "Missing argument for BEEPCMD");
+            }
+
+            return;
+        }
+
     if (strncmp(&buf[1],"HEARTBEATPV",11)==0) { /*HEARTBEATPV*/
 
 		if (pmainGroup->heartbeatPV.name) return;
@@ -774,6 +805,8 @@ void alWriteConfig(char *filename,struct mainGroup *pmainGroup)
 	if (!fw) return;
 	if (psetup.beepSevr > 1)
 		fprintf(fw,"$BEEPSEVERITY  %s\n",alhAlarmSeverityString[psetup.beepSevr]);
+        if (psetup.beepCmd)
+                fprintf(fw,"$BEEPCMD %s\n", psetup.beepCmd);
 	/*alWriteGroupConfig(fw,(SLIST *)&(pmainGroup->p1stgroup));*/
 	alWriteGroupConfig(fw,(SLIST *)pmainGroup);
 	fclose(fw);

@@ -1,3 +1,4 @@
+$BEEPCMD sleep 5;date -R >> alhtest
 $BEEPSEVERITY  MAJOR
 GROUP    NULL                         JBA_TEST_MAIN_GROUP                       
 $COMMAND  xload

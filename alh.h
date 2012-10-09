@@ -181,6 +181,7 @@ struct setup {
 	char logFile[NAMEDEFAULT_SIZE];         /* alarm log file name */
 	char opModFile[NAMEDEFAULT_SIZE];       /* opMod log file name */
 	char saveFile[NAMEDEFAULT_SIZE];        /* save config file name */
+	char *beepCmd;                          /* Optional command in place of X bell*/
 	Boolean silenceForever;                   /* 1 - beepoff forever is true */
 	short silenceOneHour;                   /* 1 - beepoff one hour is true */
 	short silenceCurrent;                     /* 1 - current beep on  0 - off */
