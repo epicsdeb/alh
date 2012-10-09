@@ -1,3 +1,9 @@
+alh (1.2.26-2) squeeze-2012A; urgency=low
+
+  * Add BEEPCMD option to run as shell command instead of XBell()
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Tue, 09 Oct 2012 18:58:25 -0400
+
 alh (1.2.26-1) unstable; urgency=low
 
   * New upstream version
