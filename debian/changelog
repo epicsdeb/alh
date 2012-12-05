@@ -1,3 +1,9 @@
+alh (1.2.26-2.1) unstable; urgency=low
+
+  * Rebuild for epics 3.14.12
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Wed, 05 Dec 2012 17:56:34 -0500
+
 alh (1.2.26-2) squeeze-2012A; urgency=low
 
   * Add BEEPCMD option to run as shell command instead of XBell()
