@@ -185,6 +185,8 @@ X11_DIR = $(X11_LIB)
 
 RCS_WIN32 += alh.rc
 
+PROD_SYS_LIBS += pthread
+
 include $(TOP)/configure/RULES
 
 alh.res:../alh.ico
