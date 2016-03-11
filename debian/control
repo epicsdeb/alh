@@ -1,10 +1,10 @@
 Source: alh
 Section: contrib/admin
 Priority: extra
-Maintainer: Michael Davidsaver <mdavidsaver@bnl.gov>
+Maintainer: Michael Davidsaver <mdavidsaver@gmail.com>
 Build-Depends: debhelper (>= 7), cdbs,
                epics-dev (>= 3.14.11-2),
-               epics-extensions-dev (>= 20091204.1),
+               epics-extensions-dev (>= 20130514.5),
                htmldoc,
                libmotif-dev, libx11-dev, libxp-dev, libxmu-dev, libxtst-dev
 Standards-Version: 3.8.0

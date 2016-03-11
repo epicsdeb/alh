@@ -1,3 +1,11 @@
+alh (1.2.26-3) unstable; urgency=medium
+
+  * Build against Base 3.15.3
+  * Missing -lpthread
+  * Depend on epics-extensions-dev w/ RULES_PYTHON fix
+
+ -- Michael Davidsaver <mdavidsaver@gmail.com>  Fri, 11 Mar 2016 09:29:02 -0500
+
 alh (1.2.26-2.1) unstable; urgency=low
 
   * Rebuild for epics 3.14.12
