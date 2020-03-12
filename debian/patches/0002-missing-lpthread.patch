@@ -1,0 +1,21 @@
+From: Michael Davidsaver <mdavidsaver@gmail.com>
+Date: Thu, 10 Mar 2016 19:54:31 -0500
+Subject: missing -lpthread
+
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index d8848e3..70a2781 100755
+--- a/Makefile
++++ b/Makefile
+@@ -185,6 +185,8 @@ X11_DIR = $(X11_LIB)
+ 
+ RCS_WIN32 += alh.rc
+ 
++PROD_SYS_LIBS += pthread
++
+ include $(TOP)/configure/RULES
+ 
+ alh.res:../alh.ico

@@ -1,0 +1,21 @@
+From: Michael Davidsaver <mdavidsaver@bnl.gov>
+Date: Tue, 9 Oct 2012 18:58:15 -0400
+Subject: workaround crash on startup with test.alhConfig
+
+---
+ axRunW.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/axRunW.c b/axRunW.c
+index a2b60e5..f3dd0b5 100644
+--- a/axRunW.c
++++ b/axRunW.c
+@@ -381,7 +381,7 @@ void silenceCurrentReset(void *area)
+ {
+ 	if (psetup.silenceCurrent) {
+ 		psetup.silenceCurrent = FALSE;
+-		if (((ALINK*)area)->silenceCurrent) {
++		if (area && ((ALINK*)area)->silenceCurrent) {
+ 			XmToggleButtonGadgetSetState(((ALINK*)area)->silenceCurrent,
+ 			    FALSE,FALSE);
+ 		}
