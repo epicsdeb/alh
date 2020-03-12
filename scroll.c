@@ -87,7 +87,6 @@ char *Strncat(
 #  define MAX(a,b) ((a) > (b) ? a : b)
 #endif
 
-
 static int viewFileUsedLength[N_LOG_FILES];        /* used length of file. */
 static int viewFileMaxLength[N_LOG_FILES];        /* max length of file. */
 static char *viewFileString[N_LOG_FILES];    /* contents of file. */
@@ -100,157 +99,68 @@ extern int alarmLogFileOffsetBytes; /* alarm log file current offset in bytes */
 extern int alarmLogFileStringLength;  /* alarm log file record length*/
 extern int alarmLogFileMaxRecords;   /* alarm log file maximum # records */
 
-
 extern int DEBUG;
 extern struct setup psetup;            /* current file setup */
 
-static char error_file_size[] = {
-	    "  Sorry:  file size too big to view."
-	    };
-
-
-typedef struct fplistTag {
-  struct fplistTag *flink;
-  struct fplistTag *blink;
-  FILE *f;
-} fplistType, *fplistPtr;
-
-static fplistPtr g_head;
+static char error_file_size[] = { "  Sorry:  file size too big to view." };
 
 #define MAXCONFIGFILELINE 1023
+
 #ifdef WIN32
 #define strtok_r strtok_s
 #endif
 
-static void readFile (
-  fplistPtr cur,
-  char *buf,
-  int *max,
-  int *size,
-  int *depth
-) {
+/****************************************************************
+static void readFile 
+****************************************************************/
+static int readFile (char *filename, char **buf, int *max, int *fsize, int *depth)
+{
+  FILE *fp;
+  char line[MAXCONFIGFILELINE+1], *result, *tk, *ctx;
+  int i;
+  int status;
 
-char line[MAXCONFIGFILELINE+1], *result, *tk, *ctx, incFile[1023+1];
-fplistPtr new;
-int i, l;
-
-  if ( cur->f ) {
-
-    do {
-
-      result = fgets( line, MAXCONFIGFILELINE, cur->f );
-      if ( result ) {
-
-        *size += strlen(line) + *depth * 3;
-
-        if ( *size+10 > *max ) {
-          *max = (int)(*size + 0.5 * *size);
-          buf = (char *) XtRealloc( buf, *max );
-        }
-
-        for ( i=0; i<*depth; i++ ) strcat( buf, "   " );
-
-        strcat( buf, line );
-
-        ctx = NULL;
-        tk = strtok_r( line, " \t\n", &ctx );
-        if ( tk ) {
-          if ( strcmp( tk, "INCLUDE" ) == 0 ) {
-            tk = strtok_r( NULL, " \t\n", &ctx );
-            if ( tk ) {
-              tk = strtok_r( NULL, " \t\n", &ctx );
-              if ( tk ) {
-                new = (fplistPtr) calloc( 1, sizeof(fplistType) );
-                g_head->blink->flink = new;
-                new->blink = g_head->blink;
-                new->flink = g_head;
-                g_head->blink = new;
-		if ( psetup.configDir ) {
-                  strncpy( incFile, psetup.configDir, 1023 );
-		  incFile[1023] = 0;
-		  l = strlen( incFile );
-		  if ( l > 0 ) {
-		    if ( incFile[l-1] != '/' ) {
-		      Strncat( incFile, "/", 1023 );
-		      incFile[1023] = 0;
-		    }
-		  }
-		}
-		else {
-		  strcpy( incFile, "" );
-		}
-		Strncat( incFile, tk, 1023 );
-		incFile[1023] = 0;
-                new->f = fopen( incFile, "r" );
-		(*depth)++;
-                *size += strlen("----------------------------\n") +
-                 *depth * 3;
-                if ( *size+10 > *max ) {
-                  *max = (int)(*size + 0.5 * *size);
-                  buf = (char *) XtRealloc( buf, *max );
-                }
-                for ( i=0; i<*depth; i++ ) strcat( buf, "   " );
-                strcat( buf, "----------------------------\n" );
-                readFile( new, buf, max, size, depth );
-                *size += strlen("----------------------------\n") + *depth * 3;
-                if ( *size+10 > *max ) {
-                  *max = (int)(*size + 0.5 * *size);
-                  buf = (char *) XtRealloc( buf, *max );
-                }
-                for ( i=0; i<*depth; i++ ) strcat( buf, "   " );
-                strcat( buf, "----------------------------\n" );
-		(*depth)--;
-		if ( new->f ) fclose( new->f );
-                new->blink->flink = new->flink;
-                new->flink->blink = new->blink;
-		free( new );
-              }
-            }
-          }
-        }
-
-      }
-
-    } while ( result );
-
+  /* open the file */
+  if ((fp = fopen(filename, "r")) == NULL) {
+	errMsg("Cannot open file view: file %s not found\n",filename);
+	return -1;             /* bail out if no file found */
   }
 
+  /* read the file */
+  while ( (result = fgets( line, MAXCONFIGFILELINE, fp)) ) {
+
+        /* realloc buf if fsize is not large enough */
+        *fsize += (int)strlen(line) + *depth * 3;
+        if ( *fsize+1 > *max ) {
+          *max = (int)(*fsize + 0.5 * *fsize);
+          *buf = (char *) XtRealloc( *buf, *max );
+        }
+
+        /* indent lines of an embedded file by 3 blanks * depth of INCLUDE */
+        for ( i=0; i<*depth; i++ ) strcat( *buf, "   " );
+
+        strcat( *buf, line );
+
+        /* test	for a "INCLUDE groupname filename" line */
+        ctx = NULL; 
+        tk = strtok_r( line, " \t\n", &ctx);  
+        if ( tk && strcmp( tk, "INCLUDE" )==0 ) {
+            tk = strtok_r( NULL, " \t\n", &ctx);  /* ignore groupname */
+            if ( tk ) {
+              tk = strtok_r( NULL, " \t\n", &ctx); /* filename */
+              if ( tk ) {
+		(*depth)++;
+                status = readFile ( tk, buf, max, fsize, depth);
+                if (status) return status;
+		(*depth)--;
+              }
+            }
+        }
+  }
+  fclose(fp);
+  return 0;
 }
 
-static void readAll (
-  char *buf,
-  int max,
-  int num,
-  FILE *fp
-) {
-
-fplistPtr cur;
-int size = 0;
-int depth = 0;
-
-  g_head = (fplistPtr) calloc( 1, sizeof(fplistType) );
-  g_head->f = NULL;
-  g_head->flink = g_head;
-  g_head->blink = g_head;
-
-  cur = (fplistPtr) calloc( 1, sizeof(fplistType) );
-  cur->f = fp;
-
-  /* link */
-  cur->blink = g_head->blink;
-  g_head->blink->flink = cur;
-  cur->flink = g_head;
-  g_head->blink = cur;
-
-  readFile( cur, buf, &max, &size, &depth );
-
-  cur->blink->flink = cur->flink;
-  cur->flink->blink = cur->blink;
-  free( cur );
-
-  free( g_head );
-
-}
 
 /**************************************************************************
     create scroll window for file view
@@ -290,11 +200,10 @@ void fileViewWindow(Widget w,int option,Widget menuButton)
 
 		viewFileUsedLength[option] = 0;
 		viewFileMaxLength[option] = 0;
-
 		XtFree(viewFileString[option]);
 		viewFileString[option]=NULL;
-		XtUnmanageChild(app_shell);
 
+		XtUnmanageChild(app_shell);
 		XtVaSetValues(menuButton, XmNset, FALSE, NULL);
 
 		return;
@@ -303,52 +212,78 @@ void fileViewWindow(Widget w,int option,Widget menuButton)
 	XtVaSetValues(menuButton, XmNset, TRUE, NULL);
 
 	if (stat(filename, &statbuf) == 0)
-		viewFileUsedLength[operandFile] = statbuf.st_size;
+		viewFileUsedLength[operandFile] = statbuf.st_size +1;
 		else
 		viewFileUsedLength[operandFile] = 1000000; /* arbitrary file length */
 
 	if (statbuf.st_size > 1000000)
 	{
 		XtVaSetValues(menuButton, XmNset, FALSE, NULL);
-		createDialog(XtParent(w),XmDIALOG_ERROR,filename, &error_file_size[0]);
+		createDialog(XtParent(w),XmDIALOG_ERROR,filename, error_file_size);
 		return;
 	}
 
-	/* allocate space for the file string */
-	viewFileMaxLength[operandFile] = MAX(INITIAL_FILE_LENGTH,
-	    2*viewFileUsedLength[operandFile]);
-	viewFileString[operandFile] = (char *)
-	    XtCalloc(1,viewFileMaxLength[operandFile]);
-	if(!viewFileString[operandFile]) { 
-	  XtVaSetValues(menuButton, XmNset, FALSE, NULL);
-	  createDialog(XtParent(w),XmDIALOG_ERROR,"no free memory","");
-	  return;
-	}
-
-	/* read the file string */
-	if ((fp = fopen(filename, "r")) == NULL) {
-		XtVaSetValues(menuButton, XmNset, FALSE, NULL);
-		fprintf(stderr,"fileViewWindow: file %s not found\n",filename);
-		return;             /* bail out if no file found */
-	}
 
 	switch (option) {
 
 	case CONFIG_FILE:
-	  readAll( viewFileString[operandFile],
-           viewFileUsedLength[operandFile], 1, fp );
+
+        {
+          int size = 0;
+          int depth = 0;
+
+	  /* allocate space for the file string */
+	  viewFileString[operandFile] = (char *)
+	      XtCalloc(1,viewFileUsedLength[operandFile]);
+	  if(!viewFileString[operandFile]) { 
+	    XtVaSetValues(menuButton, XmNset, FALSE, NULL);
+	    createDialog(XtParent(w),XmDIALOG_ERROR,"no free memory","");
+	    return;
+	  }
+
+ 	  readFile(filename, &viewFileString[operandFile], 
+                                      &viewFileUsedLength[operandFile], &size, &depth);
+        }
+
 	  break;
 
 	default:
-	  fread(viewFileString[operandFile],
-	   viewFileUsedLength[operandFile],1, fp);
-	  break;
+   
+
+        {
+	    /* allocate space for the file string */
+	    viewFileMaxLength[operandFile] = MAX(INITIAL_FILE_LENGTH,
+	        2*viewFileUsedLength[operandFile]);
+	    viewFileString[operandFile] = (char *)
+	        XtCalloc(1,viewFileMaxLength[operandFile]);
+	    if(!viewFileString[operandFile]) { 
+	        XtVaSetValues(menuButton, XmNset, FALSE, NULL);
+	        createDialog(XtParent(w),XmDIALOG_ERROR,"no free memory","");
+	        return;
+	    }
+
+	    /* Open the file */
+	    if ((fp = fopen(filename, "r")) == NULL) {
+		XtVaSetValues(menuButton, XmNset, FALSE, NULL);
+		errMsg("Cannot open file view: file %s not found\n",filename);
+		return;             /* bail out if no file found */
+	    }
+
+	    /* read the file */
+	    fread(viewFileString[operandFile],
+	     viewFileUsedLength[operandFile],1, fp);
+
+	    clearerr(fp);
+	    if (fclose(fp)) {
+                fprintf(stderr, "fileViewWindow: unable to close file %s.\n",filename);
+                errMsg("Error: unable to close file %s.\n",filename);
+            }
+
+	    break;
 
 	}
 
-	clearerr(fp);
-	if (fclose(fp)) fprintf(stderr,
-		"fileViewWindow: unable to close file %s.\n",filename);
+	}
 
 	/*  create view window dialog */
 	if (!app_shell) {
@@ -585,7 +520,7 @@ void updateLog(int fileIndex,char *string)
 #endif
 	char *tmp;
 
-	int stringLength = strlen(string);
+	int stringLength = (int)strlen(string);
 	int oldUsedLength = viewFileUsedLength[fileIndex];
 
 
@@ -643,12 +578,15 @@ void updateLog(int fileIndex,char *string)
 		/* read the file string */
 		if ((fp = fopen(filename, "r")) == NULL) {
 			fprintf(stderr,"updateLog: file %s open error.\n",filename);
+			errMsg("Error opening file  %s\n",filename);
 			return;                /* bail out if no file found */
 		}
 		fread(viewFileString[fileIndex], sizeof(char), 
 		    viewFileUsedLength[fileIndex], fp);
-		if (fclose(fp)) fprintf(stderr, 
-		    "updateLog: unable to close file %s.\n",filename);
+		if (fclose(fp)) {
+                    fprintf(stderr, "updateLog: unable to close file %s.\n",filename);
+                    errMsg("Error closing file %s\n",filename);
+                }
 
 		/* add the file string to the text widget */
 		XmTextSetString(viewTextWidget[fileIndex], viewFileString[fileIndex]);
@@ -717,8 +655,8 @@ void browser_fileViewWindow(Widget w,int option,Widget menuButton)
 	static Widget opmod_shell=NULL;
 	Widget app_shell=NULL,title=0,button,button1;
 	Widget previous;
-	char sbuf[120];
 #ifndef WIN32
+	char sbuf[120];
 	DIR *directory;
 #endif
 	struct stat statbuf;         /* Information on a file. */
@@ -779,8 +717,7 @@ void browser_fileViewWindow(Widget w,int option,Widget menuButton)
 			}
 #endif
 		if ((fp = fopen(filename, "r")) == NULL) {
-			sprintf(sbuf, "fileViewWindow: Can't open file %s\n",filename);
-			createDialog(w,XmDIALOG_WARNING,sbuf," ");
+                        errMsg("Can't open file %s\n",filename);
 			fprintf(stderr, "Can't open file %s\n",filename);
 			return;
 		}
@@ -1354,7 +1291,7 @@ XtPointer call_data)
   XChangeWindowAttributes(display,XtWindow((Widget)client_data),CWCursor,&attrs);
   XFlush(display);
   
-  len=strlen(FSnameshort)-10;   /*  length of name without "extension" */
+  len=(int)strlen(FSnameshort)-10;   /*  length of name without "extension" */
 #ifndef WIN32
   while((rdr=readdir(directory))) 
     {
@@ -1572,7 +1509,7 @@ XtPointer call_data)
 	}
 	XmTextSetHighlight(text_w,positionSearch,positionSearch+lenSearch, 
 	    XmHIGHLIGHT_NORMAL);
-	lenSearch=strlen(search_pat);
+	lenSearch=(int)strlen(search_pat);
 	positionSearch = XmTextGetCursorPosition(text_w);
 	for(p=&string[positionSearch+1];(p=strchr((const char *)p,*search_pat));p++)
 		if (!strncmp(p, search_pat, lenSearch)) {
@@ -1620,7 +1557,7 @@ XtPointer call_data)
 	}
 	XmTextSetHighlight(text_w,positionSearch,positionSearch+lenSearch, 
 	    XmHIGHLIGHT_NORMAL);
-	lenSearch=strlen(search_pat);
+	lenSearch=(int)strlen(search_pat);
 	if((positionSearch=XmTextGetCursorPosition(text_w))>0)
 	{
 		for (p = &string[positionSearch-1]; p >= string; p--)

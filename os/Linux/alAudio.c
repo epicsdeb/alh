@@ -14,16 +14,16 @@
 \*************************************************************************/
 /* alAudio.c 
  *
- * alAudio.c,v 1.6 2014/08/25 18:57:49 jba Exp
+ * alAudio.c,v 1.3 2003/02/27 17:20:08 jba Exp
  *
  */
-
-#include <stdlib.h>
 
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
 
 #include "alh.h"
+#include "ax.h"
+#include <stdlib.h>
 
 /* Audio device not implemented */
 
@@ -32,9 +32,18 @@
 ******************************************************/
 void alBeep(Display *displayBB)
 {
-	/* system("play /path/to/beep.wav"); */
-	XkbBell(displayBB,None,0,None);
-	return;
+    static char cmd[NAMEDEFAULT_SIZE+9]="";
+    if(strlen(psetup.soundFile)>0 ) {
+        if(strlen(cmd)==0 ) {
+            strcat(cmd,"play -q ");
+            strcat(cmd,psetup.soundFile);
+            strcat(cmd," &");
+            /*strcat(cmd," > /dev/null 2>&1 &");*/
+        }
+        system(cmd);
+    } else {
+        XkbBell(displayBB,None,0,None);
+    }
+    return;
 }
-
 

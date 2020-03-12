@@ -14,7 +14,7 @@
 \*************************************************************************/
 /* alAudio.c
  *
-   alAudio.c,v 1.3 2002/08/02 15:37:48 jba Exp
+   alAudio.c,v 1.4 2011/01/27 15:00:54 jba Exp
 */
 
 /************************DESCRIPTION***********************************
@@ -30,6 +30,9 @@
 #include <sys/audioio.h>
 #include <signal.h>
 #include <stropts.h>
+
+#include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 
 #include <Xm/Xm.h>
 #include <Xm/AtomMgr.h>
@@ -251,10 +254,10 @@ void alBeep(Display *displayBB)
     percent = 100;
 
     if (audioSetup.port==AUDIO_NONE){
-        XBell(displayBB,percent);
+        XkbBell(displayBB,None,percent,None);
     } else {
         if (alAudioBeep()){
-            XBell(displayBB,percent);
+            XkbBell(displayBB,None,percent,None);
         }
     }
 }
