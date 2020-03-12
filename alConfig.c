@@ -119,7 +119,10 @@ int caConnect)
 
 	fp = fopen(filename,"r");
 	if(fp==NULL) {
-		perror("Could not open Alarm Configuration File");
+                sprintf(buf,
+                    "Could not open Alarm Configuration File: %.*s",
+                    (int)MAX_STRING_LENGTH-42,filename);
+                perror(buf);
 		exit(-1);
 	}
 
@@ -182,7 +185,7 @@ struct mainGroup *pmainGroup)
 
 	parent_link = *pglink;
 
-	rtn = sscanf(buf,"%20s%32s%32s",command,parent,name);
+	rtn = sscanf(buf,"%20s%64s%64s",command,parent,name);
 
 	if(rtn!=3) {
 		print_error(buf,"Invalid GROUP command");
@@ -227,7 +230,7 @@ struct mainGroup *pmainGroup)
 		parent_link = parent_link->parent;
 
 	if(parent_link==NULL) {
-		print_error(buf,"Can not find parent");
+		print_error(buf,"Cannot find parent");
 		return;
 	}
 
@@ -254,7 +257,7 @@ struct mainGroup *pmainGroup)
 
 	if (pglink) parent_link = *pglink;
 
-	rtn = sscanf(buf,"%20s%32s%s",command,parent,name);
+	rtn = sscanf(buf,"%20s%64s%s",command,parent,name);
 
 	if(rtn!=3) {
 		print_error(buf,"Invalid INCLUDE command");
@@ -361,7 +364,7 @@ int caConnect,struct mainGroup *pmainGroup)
 		parent_link = parent_link->parent;
 
 	if(parent_link==NULL) {
-		print_error(buf,"Can not find parent");
+		print_error(buf,"Cannot find parent");
 		return;
 	}
 
@@ -441,41 +444,10 @@ int context,int caConnect,struct mainGroup *pmainGroup)
 		return;
 	}
 
-	if (strncmp(&buf[1],"BEEPCMD",7)==0) {
-            unsigned int start=8, end = strlen(buf) - 1;
-
-            /* skip leading whitespace to find start of command */
-            for(; start<=end && (buf[start]=='\t' || buf[start]==' '); start++) {}
-
-            if(start>end) {
-                print_error(buf, "expected argument after BEEPCMD");
-                return;
-            }
-
-            /* back track to trim trailing whitespace */
-            for(; end>=start && (buf[end]=='\0' || isspace(buf[end])); end--) {}
-
-            if(end>start) {
-                if(psetup.beepCmd)
-                    free(psetup.beepCmd);
-                psetup.beepCmd = malloc(end-start+2);
-                if(!psetup.beepCmd) {
-                    print_error(buf, "Not enough memory for BEEPCMD");
-                } else {
-                    memcpy(psetup.beepCmd, &buf[start], end-start+1);
-                    psetup.beepCmd[end-start+1] = '\0';
-                }
-            } else {
-                print_error(buf, "Missing argument for BEEPCMD");
-            }
-
-            return;
-        }
-
     if (strncmp(&buf[1],"HEARTBEATPV",11)==0) { /*HEARTBEATPV*/
 
 		if (pmainGroup->heartbeatPV.name) return;
-        rtn = sscanf(buf,"%20s%32s%f%d",command,name,&rateIn,&valueIn);
+        rtn = sscanf(buf,"%20s%64s%f%d",command,name,&rateIn,&valueIn);
         if(rtn>=2) {
         	if(rtn>=3) rate = rateIn;
 	        if(rtn>=4) value = valueIn;
@@ -522,7 +494,7 @@ int context,int caConnect,struct mainGroup *pmainGroup)
 		if (gcdata->pforcePV && gcdata->pforcePV->name) return;
 		if (!gcdata->pforcePV) gcdata->pforcePV=(FORCEPV*)calloc(1,sizeof(FORCEPV));
 		dbl=0.0;
-		rtn = sscanf(buf,"%20s%32s%6s%lf%9s",command,name,mask,&dbl,string);
+		rtn = sscanf(buf,"%20s%64s%6s%lf%9s",command,name,mask,&dbl,string);
 		if(rtn>=3) alSetMask(mask,&(gcdata->pforcePV->forceMask));
 		if (rtn >= 4) gcdata->pforcePV->forceValue = dbl;
 		else gcdata->pforcePV->forceValue=1;
@@ -629,7 +601,7 @@ int context,int caConnect,struct mainGroup *pmainGroup)
 	if (strncmp(&buf[1],"SEVRPV",6)==0) { /*SEVRPV*/
 
 		if(strcmp(gcdata->sevrPVName,"-") != 0) return;
-		rtn = sscanf(buf,"%20s%32s",command,name);
+		rtn = sscanf(buf,"%20s%64s",command,name);
 		if(rtn>=2) {
 			gcdata->sevrPVName = (char *)calloc(1,strlen(name)+1);
 			strcpy(gcdata->sevrPVName,name);
@@ -805,8 +777,6 @@ void alWriteConfig(char *filename,struct mainGroup *pmainGroup)
 	if (!fw) return;
 	if (psetup.beepSevr > 1)
 		fprintf(fw,"$BEEPSEVERITY  %s\n",alhAlarmSeverityString[psetup.beepSevr]);
-        if (psetup.beepCmd)
-                fprintf(fw,"$BEEPCMD %s\n", psetup.beepCmd);
 	/*alWriteGroupConfig(fw,(SLIST *)&(pmainGroup->p1stgroup));*/
 	alWriteGroupConfig(fw,(SLIST *)pmainGroup);
 	fclose(fw);

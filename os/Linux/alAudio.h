@@ -12,29 +12,9 @@
 * This file is distributed subject to a Software License Agreement found
 * in the file LICENSE that is included with this distribution. 
 \*************************************************************************/
-/* alAudio.c 
- *
- * alAudio.c,v 1.6 2014/08/25 18:57:49 jba Exp
- *
- */
+/* alAudio.h */
 
-#include <stdlib.h>
+/* do not #define AUDIO_BEEP */
 
-#include <X11/Xlib.h>
-#include <X11/XKBlib.h>
-
-#include "alh.h"
-
-/* Audio device not implemented */
-
-/******************************************************
-  alBeep
-******************************************************/
-void alBeep(Display *displayBB)
-{
-	/* system("play /path/to/beep.wav"); */
-	XkbBell(displayBB,None,0,None);
-	return;
-}
-
+/*extern void alhAudioSetupCallback( Widget widget, XtPointer calldata, XtPointer cbs);*/
 

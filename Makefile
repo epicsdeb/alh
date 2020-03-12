@@ -13,9 +13,9 @@
 # in the file LICENSE that is included with this distribution. 
 #*************************************************************************
 #
-# Makefile,v 1.18 2008/12/03 17:20:17 jba Exp
+# Makefile,v 1.22 2013/04/22 16:07:23 jba Exp
 #
-TOP=.
+TOP=../..
 include $(TOP)/configure/CONFIG
 
 #===========================
@@ -157,11 +157,11 @@ alh_DB_SRCS = alh_DB.c
 
 alh_printer_SRCS = printer.c
 
-PROD_HOST_DEFAULT = alh alh_printer
+PROD_HOST_DEFAULT = alh alh_printer  alh_DB
 PROD_HOST_WIN32 = alh
 
 WIN32_RUNTIME=MD
-USR_CFLAGS_WIN32 += /DWIN32 /D_WINDOWS
+USR_CFLAGS_WIN32 += -DWIN32 -D_WINDOWS
 ifndef BORLAND
 USR_LDFLAGS_WIN32 += /SUBSYSTEM:WINDOWS
 endif
@@ -184,8 +184,6 @@ Xt_DIR = $(X11_LIB)
 X11_DIR = $(X11_LIB)
 
 RCS_WIN32 += alh.rc
-
-PROD_SYS_LIBS += pthread
 
 include $(TOP)/configure/RULES
 
