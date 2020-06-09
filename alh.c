@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "alh.h"
 #include "epicsVersion.h"
@@ -56,13 +57,16 @@ int main(int argc,char *argv[])
 
 	int interval=0;
 	/* OS specific initialization */
+#ifdef HCLXMINIT
 #ifdef WIN32
 	HCLXmInit();
+#endif
 #endif
 #ifdef HP_UX
         _main();
 #endif
- 
+
+
 	/*  Xt initialize the application */
 	topLevelShell = XtAppInitialize(&appContext, "Alarm", NULL, 0, &argc, argv,
 	    fallbackResources, NULL, 0);

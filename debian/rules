@@ -11,7 +11,16 @@ EPICS_HOST_ARCH:=$(shell /usr/lib/epics/startup/EpicsHostArch)
 # chop out the source version from Changelog (ie 3.14.10)
 SOV=$(shell echo "$(DEB_NOEPOCH_VERSION)"| cut -f 1 -d '-')
 
-DEB_MAKE_MAKEVARS = EPICS_HOST_ARCH=$(EPICS_HOST_ARCH) USE_RPATH=NO
+ifeq "$(DEB_BUILD_ARCH)" "i386"
+EPICS_HOST_ARCH:=linux-x86
+else ifeq "$(DEB_BUILD_ARCH)" "amd64"
+EPICS_HOST_ARCH:=linux-x86_64
+else
+EPICS_HOST_ARCH:=$(shell /usr/lib/epics/startup/EpicsHostArch)
+endif
+
+DEB_MAKE_MAKEVARS = EPICS_HOST_ARCH=$(EPICS_HOST_ARCH) LINKER_USE_RPATH=NO USE_SDDS=NO
+DEB_MAKE_MAKEVARS+= SHRLIB_VERSION=$(SOV)
 
 DEB_MAKE_INVOKE  = $(DEB_MAKE_ENVVARS) $(MAKE) -C $(DEB_BUILDDIR) $(DEB_MAKE_MAKEVARS)
 
@@ -19,9 +28,6 @@ DEB_MAKE_CLEAN_TARGET =
 DEB_MAKE_BUILD_TARGET = all
 DEB_MAKE_INSTALL_TARGET = all INSTALL_LOCATION=$(CURDIR)/debian/tmp/usr
 DEB_MAKE_CHECK_TARGET =
-
-# prevent debug targets from being stripped
-DEB_DH_STRIP_ARGS := -Xdebug
 
 post-patches:: configure
 
@@ -39,3 +45,9 @@ install/alh-doc::
 clean::
 	rm -rf bin O.$(EPICS_HOST_ARCH)
 	rm -f configure
+
+# prevent debug targets from being stripped
+override_dh_strip:
+	dh_strip -Xdebug
+
+.PHONY: override_dh_strip

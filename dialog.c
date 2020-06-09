@@ -181,7 +181,10 @@ void createDialog(Widget parent,int dialogType,char *message1,char *message2)
 	string2 = XmStringConcat(str3,str);
 
 	XtVaSetValues(dialog,
+#ifndef WIN32 
+            /* 6/2012 Xming hangs when dialogType is set */
 	    XmNdialogType,  dialogType,
+#endif
 	    XmNdialogTitle, string2,
 	    XmNmessageString, string,
 	    (XtPointer)NULL);
@@ -201,7 +204,7 @@ void createActionDialog(Widget parent,int dialogType,char *message1,
 XtCallbackProc okCallback,XtPointer okParm,XtPointer userParm)
 {
 	static Widget         dialog = 0; /* make it static for reuse */
-	XmString              str,str1,str2,str3;
+	XmString              str,str2;
 	static XtCallbackProc oldOkCallback = 0;
 	static XtPointer      oldOkParm = 0;
 
@@ -226,36 +229,36 @@ XtCallbackProc okCallback,XtPointer okParm,XtPointer userParm)
 
 	switch(dialogType) {
 	case XmDIALOG_WARNING:
-		str = XmStringCreateSimple("WarningDialog");
+		str = XmStringCreateSimple("ALH WarningDialog");
 		break;
 	case XmDIALOG_ERROR:
-		str = XmStringCreateSimple("ErrorDialog");
+		str = XmStringCreateSimple("ALH ErrorDialog");
 		break;
 	case XmDIALOG_INFORMATION:
-		str = XmStringCreateSimple("InformationDialog");
+		str = XmStringCreateSimple("ALH InformationDialog");
 		break;
 	case XmDIALOG_MESSAGE:
-		str = XmStringCreateSimple("MessageDialog");
+		str = XmStringCreateSimple("ALH MessageDialog");
 		break;
 	case XmDIALOG_QUESTION:
-		str = XmStringCreateSimple("QuestionDialog");
+		str = XmStringCreateSimple("ALH QuestionDialog");
 		break;
 	case XmDIALOG_WORKING:
-		str = XmStringCreateSimple("WorkingDialog");
+		str = XmStringCreateSimple("ALH WorkingDialog");
 		break;
 	default:
-		str = XmStringCreateSimple("InformationDialog");
+		str = XmStringCreateSimple("ALH InformationDialog");
 		break;
 	}
-
-	str1 = XmStringCreateLtoR("ALH ",XmFONTLIST_DEFAULT_TAG);
-	str3 = XmStringConcat(str1,str);
 
 	str2=XmStringCreateLtoR(message1,XmSTRING_DEFAULT_CHARSET);
 	XtVaSetValues(dialog,
 	    XmNuserData,      userParm,
+#ifndef WIN32 
+            /* 6/2012 Xming hangs when dialogType is set */
 	    XmNdialogType,  dialogType,
-	    XmNdialogTitle, str3,
+#endif
+	    XmNdialogTitle, str,
 	    XmNmessageString, str2,
 	    (XtPointer)NULL);
 	XmStringFree(str);
@@ -326,16 +329,20 @@ void errMsg(const char *fmt, ...)
 		warningboxMessages += 1;
 		XtManageChild(warningbox);
 	} else {
-		XBell(display,50); 
-		XBell(display,50); 
-		XBell(display,50);
+		alBeep(display);
+		alBeep(display);
+		alBeep(display);
 		cstring=XmStringCreateLtoR(lstring,XmSTRING_DEFAULT_CHARSET);
 		nargs=0;
 		XtSetArg(args[nargs],XmNtitle,"ALH Warning"); 
 		nargs++;
 		XtSetArg(args[nargs],XmNmessageString,cstring); 
 		nargs++;
+#ifndef WIN32
 		warningbox=XmCreateWarningDialog(topLevelShell,"warningMessage",
+#else
+		warningbox=XmCreateMessageDialog(topLevelShell,"warningMessage",
+#endif
 		    args,nargs);
 		XmStringFree(cstring);
 		XtDestroyWidget(XmMessageBoxGetChild(warningbox,XmDIALOG_CANCEL_BUTTON));

@@ -1,3 +1,16 @@
+alh (1.2.35-1) unstable; urgency=medium
+
+  * remove libxp-dev dependency
+  * set compat level to 9
+  * epics-debhelper>=8.12 uses LINKER_USE_RPATH instead of USE_RPATH
+  * update dependencies
+  * fix i386 build
+  * DEB_DH_STRIP_ARGS is deprecated
+  * New upstream version 1.2.35
+  * use source format 3.0 quilt
+
+ -- Christoph Schröder <christoph.schroeder@helmholtz-berlin.de>  Thu, 12 Mar 2020 15:33:33 +0100
+
 alh (1.2.26-3) unstable; urgency=medium
 
   * Build against Base 3.15.3

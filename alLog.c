@@ -91,12 +91,16 @@ struct setup psetup = {         /* initial files & beeping setup */
 	    "",    /* alarm log file name */
 	    "",    /* opMod log file name */
 	    "",    /* save config file name */
+	    "",    /* sound wav file name */
+	    "",    /* lock files basename */
 	    0,     /* silenceForever */
 	    0,     /* silenceOneHour */
 	    0,     /* silenceCurrent */
 	    1,     /* 1,2,3,4,5 */
 	    0,     /* system highest  sevr */
 	    0,     /* system highest unack sevr */
+            0,     /* system highest unack sevr >= beep sevr */
+            0,     /* new unack sevr after beep sevr tests */
 	    0,     /* config files directory */
 	    0};    /* log files directory */
 
@@ -137,10 +141,10 @@ char *displayName;
 
 #endif
 
-int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord);
+static int filePrintf(int fileType,char *buf,time_t *ptime,int typeOfRecord);
 #ifdef HAVE_SYSV_IPC
-int write2MQ(int, char *);
-int write2msgQ(int, char *);
+static int write2MQ(int, char *);
+static int write2msgQ(int, char *);
 #endif
 
 #ifdef CMLOG
@@ -197,6 +201,7 @@ void alLogAlarmMessage(time_t *ptimeofdayAlarm,int messageCode,CLINK* clink,cons
         (alhArea ? alhArea->blinkString : "N/A"),
         cdata->value);
 #endif
+
     if (_xml_flag) /* Use XML-ish entries which are easier to parse. SNS */
     {
         if (!_description_field_flag)
@@ -239,7 +244,7 @@ void alLogAlarmMessage(time_t *ptimeofdayAlarm,int messageCode,CLINK* clink,cons
         if (!_description_field_flag)
         {
             if (_global_flag)
-                sprintf(buff, "%-28s %-12s %-16s %-12s %-5s %-40.40s\n",
+                sprintf(buff, "%-28s %-12s %-16s %-12s %-5s %-40.40s",
                         cdata->name,
                         alhAlarmStatusString[cdata->curStat],
                         alhAlarmSeverityString[cdata->curSevr],
@@ -247,7 +252,7 @@ void alLogAlarmMessage(time_t *ptimeofdayAlarm,int messageCode,CLINK* clink,cons
                         ackTransientsString[cdata->curMask.AckT],
                         cdata->value);
             else
-                sprintf(buff, "%-28s %-12s %-16s %-40.40s\n",
+                sprintf(buff, "%-28s %-12s %-16s %-40.40s",
                         cdata->name,
                         alhAlarmStatusString[cdata->curStat],
                         alhAlarmSeverityString[cdata->curSevr],
@@ -256,20 +261,20 @@ void alLogAlarmMessage(time_t *ptimeofdayAlarm,int messageCode,CLINK* clink,cons
         else
         {   /* _description_field_flag is ON */
             if (_global_flag)
-                sprintf(buff, "%-28s %-28s %-40.40s %-12s %-16s %-12s %-5s\n",
+                sprintf(buff, "%-28s %-28s %-40.40s %-12s %-16s %-12s %-5s",
                 cdata->name,cdata->description,cdata->value,
                 alhAlarmStatusString[cdata->curStat],
                 alhAlarmSeverityString[cdata->curSevr],
                 alhAlarmSeverityString[cdata->unackSevr],
                 ackTransientsString[cdata->curMask.AckT]);
             else
-                sprintf(buff, "%-28s %-28s %-40.40s %-12s %-16s\n",
+                sprintf(buff, "%-28s %-28s %-40.40s %-12s %-16s",
                 cdata->name,cdata->description,cdata->value,
                 alhAlarmStatusString[cdata->curStat],
                 alhAlarmSeverityString[cdata->curSevr]);
         }
     }
-    filePrintf(fl,buff,ptimeofdayAlarm,messageCode);
+    filePrintf(ALARM_FILE,buff,ptimeofdayAlarm,messageCode);
 }
 
 
@@ -281,6 +286,7 @@ void alLogOpModMessage(int messageCode,GCLINK* gclink,const char* fmt,...)
     va_list vargs;
     static char text[1024];  /* DANGER: Fixed buffer size */
     struct gcData *gcdata=NULL;
+    size_t len;
 
     if (gclink) gcdata = gclink->pgcData;
 
@@ -306,6 +312,8 @@ void alLogOpModMessage(int messageCode,GCLINK* gclink,const char* fmt,...)
 	    (alhArea ? alhArea->blinkString : "N/A"));
     }
 #endif
+        len = strlen(text);
+        if (text[len-1] == '\n' ) text[len-1]=' ';
 
 	if (!alhArea || !alhArea->blinkString){
 		sprintf(buff,"%s",text);
@@ -317,7 +325,7 @@ void alLogOpModMessage(int messageCode,GCLINK* gclink,const char* fmt,...)
 		}
 	}
 
-	filePrintf(fo,buff,NULL,messageCode);
+	filePrintf(OPMOD_FILE,buff,NULL,messageCode);
 }
 
 
@@ -355,9 +363,8 @@ void alLogOpModAckMessage(int messageCode,GCLINK* gclink,const char* fmt,...)
         (alhArea ? alhArea->blinkString : "N/A"));
     }
 #endif
-
 	if (!alhArea || !alhArea->blinkString){
-		sprintf(buff," : : %s \n",text);
+		sprintf(buff," : : %s",text);
 	} else {
 		if (!gcdata){
 			sprintf(buff,"%s: : %s %-16s",alhArea->blinkString,text,
@@ -368,7 +375,7 @@ void alLogOpModAckMessage(int messageCode,GCLINK* gclink,const char* fmt,...)
 		}
 	}
 
-	filePrintf(fo,buff,NULL,messageCode);
+	filePrintf(OPMOD_FILE,buff,NULL,messageCode);
 }
 
 
@@ -378,7 +385,7 @@ void alLogOpModAckMessage(int messageCode,GCLINK* gclink,const char* fmt,...)
 void alLogNotSaveStart(int not_save_time)
 {
 	sprintf(buff,"Stop log start  during %d min",not_save_time);
-	filePrintf(fl,buff,NULL,STOP_LOGGING_ALARM);
+	filePrintf(ALARM_FILE,buff,NULL,STOP_LOGGING_ALARM);
 }
 
 /***********************************************************************
@@ -387,7 +394,7 @@ void alLogNotSaveStart(int not_save_time)
 void alLogNotSaveFinish()
 {
 	sprintf(buff,"Stop log finish");
-	filePrintf(fl,buff,NULL,STOP_LOGGING_ALARM);
+	filePrintf(ALARM_FILE,buff,NULL,STOP_LOGGING_ALARM);
 }
 
 /***********************************************************************
@@ -399,7 +406,7 @@ save all recordName if someone acknowledges group)
 void alLog2DBAckChan (char *name)
 {
 	sprintf(buff,"Ack Channel--- %-28s",name);
-	filePrintf(fo,buff,NULL,ACK_GROUP);  /* update the file */	
+	filePrintf(OPMOD_FILE,buff,NULL,ACK_GROUP);  /* update the file */	
 }
 
 /***********************************************************************
@@ -409,7 +416,7 @@ save all recordName if someone acknowledges group)
 void alLog2DBMask (char *name)
 {
 	sprintf(buff,"Group Mask ID --- %-28s",name);
-	filePrintf(fo,buff,NULL,CHANGE_MASK_GROUP);  /* update the file */	
+	filePrintf(OPMOD_FILE,buff,NULL,CHANGE_MASK_GROUP);  /* update the file */	
 }
 
 
@@ -434,7 +441,7 @@ Parameters: 1) filePointer
 
 ***********************************************************************/
 
-int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
+static int filePrintf(int fileType,char *buf,time_t *ptime,int typeOfRecord)
 {
   int ret=0;
   int status;
@@ -444,10 +451,10 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
   char buf_tmp[1024];
   time_t timeofday;
 
-  if(!fPointer) return (-1);
+  if(!fileType) return (-1);
 
-  if((!masterFlag) && (fPointer==fl)) return (0);
-  if(_message_broadcast_flag && notsave && (fPointer==fl) ) return (0);
+  if ((_lock_flag && !masterFlag) && (fileType==ALARM_FILE)) return (0);
+  if(_message_broadcast_flag && notsave && (fileType==ALARM_FILE) ) return (0);
 
   if (ptime == NULL)             /* Current time */
     {
@@ -468,9 +475,10 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
 	  
 	  psetup.logFile[strlen(psetup.logFile) - 11] = 0;
 	  strncat(psetup.logFile, buf_tmp, strlen(buf_tmp));
-	  fclose(fl);
+	  if (fl) fclose(fl);
 	  fl = fopen(psetup.logFile,"a");
-	  fclose(fl);
+	  if (fl) fclose(fl);
+          fl=0;
 	  if(_read_only_flag)  fl = fopen(psetup.logFile,"r");
 	  else if (_lock_flag) fl = fopen(psetup.logFile,"a");
 	  else fl = fopen(psetup.logFile,"r+");
@@ -478,9 +486,9 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
 	  /* The same with psetup.opModFile: */
 	  psetup.opModFile[strlen(psetup.opModFile) - 11] = 0;
 	  strncat(psetup.opModFile, buf_tmp, strlen(buf_tmp));
-	  fclose(fo);
+	  if (fo) fclose(fo);
 	  fo = fopen(psetup.opModFile,"a");
-	  fclose(fo);
+	  if (fo) fclose(fo);
 	  if(_read_only_flag)  fo = fopen(psetup.opModFile,"r");
 	  else if (_lock_flag) fo = fopen(psetup.opModFile,"a");
 	  else fo = fopen(psetup.opModFile,"r+");
@@ -507,8 +515,12 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
         buf_tmp[20]=0;
         sprintf(bufSave,"%-20s : %s\n",buf_tmp,buf);
     }
-	if (alarmLogFileMaxRecords&&(fPointer==fl)) 
-	  {
+
+    /* Write into Alarm log file*/
+
+
+    if (fileType==ALARM_FILE) {
+	if (alarmLogFileMaxRecords && fl) {
 	    if (alarmLogFileOffsetBytes != ftell(fl))
 	      fseek(fl,alarmLogFileOffsetBytes,SEEK_SET);
 	    if (alarmLogFileOffsetBytes >= alarmLogFileStringLength*alarmLogFileMaxRecords) {
@@ -516,30 +528,36 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
 	      status=truncateFile(psetup.logFile,alarmLogFileOffsetBytes);
 	      alarmLogFileOffsetBytes = 0;
 	    }
-	  } 
+	} 
+        if (!fl) ret=0;
+        else ret=fprintf(fl,"%s",bufSave);
+        if (ret<0 && !_read_only_flag)  {
+            fprintf(stderr,"Can't write '%s' to file=%s!!!\n", bufSave,"LOGfile"); 
+            errMsg("Error writing '%s' to file=%s!!!\n", bufSave,"LOGfile"); 
+        }
+        if (alarmLogFileMaxRecords && fl){
+            if (!alarmLogFileOffsetBytes) alarmLogFileStringLength=ftell(fl);
+            alarmLogFileOffsetBytes = ftell(fl);
+        }
+        if (fl) fflush(fl);
+        updateAlarmLog(ALARM_FILE,bufSave);
+    }
 
+    /* Write into Op Mod log file*/
 
-  ret=fprintf(fPointer,"%s",bufSave);
-
-  if (ret<0 && !_read_only_flag)  {
-    fprintf(stderr,"Can't write '%s' to file=%s!!!\n",
-	    bufSave,(fPointer==fl)?"LOGfile":"OpModFile" ); 
-  }
-
-  if (alarmLogFileMaxRecords&&(fPointer==fl)){
-	if (!alarmLogFileOffsetBytes) alarmLogFileStringLength=ftell(fl);
-    alarmLogFileOffsetBytes = ftell(fl);
-  }
-
-  fflush(fPointer);
-
+    else if (fileType==OPMOD_FILE) {
+        if (!fo) ret=0;
+        else ret=fprintf(fo,"%s",bufSave);
+        if (ret<0 && !_read_only_flag)  {
+            errMsg("Error writing '%s' to file=%s!!!\n", bufSave,"OpModFile"); 
+        }
+        if (fo) fflush(fo);
+        updateLog(OPMOD_FILE,bufSave);
+    }
+    else fprintf(stderr,"\nBad file type for writing\n");
   
-  if(fPointer==fl)        updateAlarmLog(ALARM_FILE,bufSave);
-  else if (fPointer==fo)  updateLog     (OPMOD_FILE,bufSave);
-  else fprintf(stderr,"\nBad fPointer for writing\n");
-  
-  if( (_printer_flag) && (fPointer==fl) &&printerMsgQId ) 
-    {
+
+    if( (_printer_flag) && (fileType==ALARM_FILE) &&printerMsgQId ) {
       sprintf(DBbuff,"%d %d %s %s",ALARM_LOG_DB, typeOfRecord+1,buf_tmp,buff); 
 #ifdef HAVE_SYSV_IPC
       write2MQ(printerMsgQId, DBbuff);
@@ -548,13 +566,13 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
   
   if(_DB_call_flag && DBMsgQId ) 
     { 
-      if (fPointer==fo) /* write into AlarmOp Database */ 
+      if (fileType==OPMOD_FILE) /* write into AlarmOp Database */ 
 	{
 	  if(typeOfRecord ==0) return(ret);
 	  sprintf(DBbuff,"%d %d %s %s %s %s %s %s %s",OP_MOD_DB,typeOfRecord,applicationName,
 		  deviceName,userID.loginid,userID.myhostname,userID.displayName,buf_tmp,buff);
 	}
-      else if (fPointer==fl) /* write into AlarmLOG Database */ 
+      else if (fileType==ALARM_FILE) /* write into AlarmLOG Database */ 
 	{
 	  if(typeOfRecord ==0) return(ret);
 	  sprintf(DBbuff,"%d %d %s %s %s %s %s %s %s", ALARM_LOG_DB, typeOfRecord,applicationName,
@@ -562,7 +580,7 @@ int filePrintf(FILE *fPointer,char *buf,time_t *ptime,int typeOfRecord)
 	}
       else 
 	{
-          fprintf(stderr,"\nBad fPointer for writing\n"); 
+          fprintf(stderr,"\nBad file type for writing\n"); 
 	  return (ret);
 	}
 #ifdef HAVE_SYSV_IPC
@@ -579,7 +597,7 @@ return (ret);
 ***********************************************************************/
 
 #ifdef HAVE_SYSV_IPC
-int write2MQ(int mq,char *message)
+static int write2MQ(int mq,char *message)
 {
   char buf[256];
   static int lostFlag=0;
@@ -645,7 +663,7 @@ int write2MQ(int mq,char *message)
 }
 
 
-int write2msgQ(int mq, char *mes)
+static int write2msgQ(int mq, char *mes)
 {
   if (msgsnd(mq,mes,strlen(mes),IPC_NOWAIT /* 0*/) == -1 )
     {
