@@ -181,7 +181,7 @@ Thu Mar 11 10:12:06 CST 1999
 	                        create/modify alarmLog and alarmOpMod files.
 	-S Passive Mode     --- means that operator can't acknowledge alarms 
 	                        and can't save alarmLog and alarmOpMod files.
-	-T AlarmLogDated    --- 1) alarmLog and OpMod files will have "date" extensions 
+	-T AlarmLogDated    --- 1) alarmLog and OpMod files will have "date" extension
 	                           like YYYY-MM-DD, and automatical switching 
 	                           this files in midnight.
 	
@@ -200,16 +200,17 @@ Thu Mar 11 10:12:06 CST 1999
 	                        and modificate Makefile.Unix.
 	
 	-L locking          --- allow multiple work with the same config files,
-							only one process is real master and write to alhLog
-							other is slave and they wait until master will not killed 
+	                        only one process is real master and write to alhLog
+	                        other is slave and they wait until master will not 
+	                        killed 
 	
-	-0 Database(Oracle) --- simultaneously runtime add Alarm to Database.
-							it works asynchronous, so we add additional task "alh_DB"
+	-0 Database(Oracle) --- simultaneously runtime add Alarm to Database.  It
+	                        works asynchronous, so we add additional task "alh_DB"
 	
-	-B - message broadcasting -- allow send messages between operators work with the
-	                            same config file. Most important case: "REBOOT MESSAGE":
-							    allow don't save alarm during reboot time.
-							   (NOT IMPLEMENTED YET ;)  )	
+	-B - message broadcasting -- allow send messages between operators work with
+	                             same config file. Most important case: "REBOOT 
+	                             MESSAGE": allow don't save alarm during reboot 
+	                             time. (NOT IMPLEMENTED YET ;)  )	
 	                               	
 Mon Mar 15 08:57:01 CST 1999
 	ANSI c changes to eliminate warning messages on Linux build.
@@ -413,7 +414,7 @@ Fri Feb 28 16:38:19 CST 2003 ALH_1_2_11Beta4
 
 Mon Mar  3 09:24:38 CST 2003 ALH_1_2_11Beta5
 	Moved channel beepSevr modified indicators to preceed possible return.	
-	Added code for display of highest existing beepSevr in sub groups and channels. 
+	Added code for display of highest existing beepSevr in sub groups and channels 
 	Modified alarm log file output. Now calculate alarmLogFileStringLength.
 	Changed fopen of alarm log file from r+ to w+(truncate or create).
 	Modified forcePV opMod log messages text.
@@ -464,9 +465,9 @@ Tue Apr  5 10:06:27 CDT 2005
 
 Tue Jun 21 13:23:04 CDT 2005 ALH_1_2_20
 	Silence One Hour:
-		Set color of newly created row widgets to color of parent widget.
-		Change color of ALL widget children except ack button, sevr indicator,
-		and name push button.
+	Set color of newly created row widgets to color of parent widget.
+	Change color of ALL widget children except ack button, sevr indicator,
+	and name push button.
 	Write errMsg text to opMod log file when errors occur.
 	Remove extra carriage returns in opMod log file.
 	Remove group and channel data from opMod log message if they do not exist.
@@ -584,7 +585,87 @@ Fri Jul  9 15:14:24 CDT 2010 ALH_1_2_26
 	Portablility changes.
 	Bug fix: set current value to -999 to recalculate and test the force pv
 	expression after user changes are Applied from the ForcePV dialog box.
-	Core dump bug fix: Test for existance before trying to modify runtime 
+	Core dump bug fix: Test for existance before trying to modify runtime
 	window string. Alh may be started with main window only (-mainwindow).
 	Removed references to Alarm Configuration Tool in ALH Users Manual.
+
+Fri Feb 25 14:23:01 CST 2011 ALH_1_2_27
+	Use alBeep instead of calling XBell directly. Changed call to XBell
+	to call to XkbBell. Portability changes. alLog.c: Added static qualifier
+	to local routines. Remove extra carrige return in alarm log output.
+	Check for _lock_flag also when checking masterFlag.
+
+Tue Jul 26 13:56:13 CDT 2011
+	Changed code to allow up to 99 chars in group, channel, and pv names.
+	Modified Current Alarm Histroy Window to use 7x14 fixed font and to
+	truncate long channel names to 31 characters. Fixed formating bug in
+	error messagelogs. Modified main windows and popup Action dialogs to
+	allow long group/channel names and pv names.
+
+Tue May 22 16:29:19 CDT 2012 ALH_1_2_28
+	Added following changes and command line options by Andreas Luedeke
+ 	Changed silenced bg color from lightpink to blue
+	Add file name to config file open error message.
+	-p file     use wave file for sound instead of alarm beep (OS dependent)
+	-maskcolor  Print mask colored when channel/group contains silencing flag
+	            makes it easier to find all canceled/disabled/noAck channels.
+	-Lfile dir  lockfile directory name for lock files [configdir]
+
+Thu Jun 21 15:26:50 CDT 2012 ALH_1_2_29
+	Changed silenced and noack bg color from blue to lightpink.
+	Modified popup dialogs for WIN32 to allow use with Xming X server.
+
+Wed Aug 29 16:32:14 CDT 2012 ALH_1_2_30
+	Increased size of group and channel config file input fields. Portability 
+	changes. Bug fix in initialization of psetup. Change darwin default to
+	HAVE_SYSV_IPC.
+
+Thu Nov 29 15:13:46 CST 2012 ALH_1_2_31
+	Added code to browser.c (from <wart@kobold.org>) and Makefile to use 
+        xdg-open on Linux systems to open an url from alh if the compiler macro 
+	USE_XDGOPEN was defined during the build.
+	Fixed bugs in AlarmLogDated (-T option) code.
+
+Mon Apr 22 11:05:07 CDT 2012
+	Modified text in 2 error messages. Changed alarm bell function from Xbell
+	to XkbBell. Used more modern tools to open default browser. Changed 
+	silenced background color back to blue.
+
+Tue Apr 23 10:57:01 CDT 2013
+	SilenceOneHour feature changed: Added setup/select_silence_interval menu
+	item with interval selections 5, 10, 15, 30, 60 minutes. SilenceOneHour 
+        button text now shows selected interval (default is 1 hour). Pressing 
+	silence button on message window will silence beeps for selected time 
+        interval. Changing interval selection will terminate an existing silence
+	interval.
+
+Wed Apr 24 16:11:47 CDT 2013
+	Added two more 'ALARMCOUNTFILTER counts seconds' filters.  If counts is
+	zero, counts is not used in determining alarm/no-alarm state. Seconds only
+	are used for a channel going in and out of alarm. If counts is -1, seconds
+	only are used for channel going from no-alarm to alarm state. Change in
+	channel from alarm to no-alarm state is not filtered.
+
+Thu Apr 25 10:22:57 CDT 2013
+	Changed log file handling on alh startup. Now when error opening alarmLog or
+	opModLog file, an error message popup will be displayed and alh will continue
+	without the file. The file can be opened/created after startup via setup menu.
+
+Tue May 14 11:19:07 CDT 2013  ALH_1_2_32
+	Minor text changes. Updated User's Guide text and images.
+
+Mon May 20 13:49:51 CDT 2013 ALH_1_2_33
+	Fixed code for the -maskcolor command line option. Accidental commit on May 14
+	broke the -maskcolor code.
+
+Thu Jul 17 14:10:37 CDT 2014 ALH_1_2_34
+	Changed way beeping option -p <fn> works. Used fork() and execlp() to get play 
+	process to run in the background. Ignore SIGCHLD signals so alh doesn't have to
+	wait for child processes to finish.
+
+Mon Aug 25 14:09:19 CDT 2014 ALH_1_2_35
+	Changed beeping option with -p again. Used system() with '&' at command 
+        end.  Created a "test beep" setup menu item to test the beeping sound. 
+        An error message is displayed if the command line sound file cannot be 
+        opened for read access. Changed default silence interval to .5 hour.
 

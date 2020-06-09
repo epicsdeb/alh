@@ -1,0 +1,27 @@
+Source: alh
+Section: contrib/admin
+Priority: extra
+Maintainer: Michael Davidsaver <mdavidsaver@gmail.com>
+Build-Depends: debhelper (>= 9), cdbs,
+               epics-dev (>= 3.15.5-1~), epics-debhelper (>= 8.17~),
+               epics-extensions-dev (>= 20130514.5~),
+               htmldoc,
+               libmotif-dev, libx11-dev, libxmu-dev, libxtst-dev
+Standards-Version: 3.8.0
+Homepage: http://www.aps.anl.gov/epics/extensions/alh/index.php
+
+Package: alh
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+Suggests: alh-doc (= ${binary:Version})
+Description: EPICS Alarm Handler
+ A specialized EPICS client which listens for alarms on a preset list
+ of channels.
+
+Package: alh-doc
+Section: contrib/doc
+Architecture: all
+Conflicts: alh (<< 1.2.25-1)
+Description: EPICS Alarm Handler
+ A specialized EPICS client which listens for alarms on a preset list
+ of channels.

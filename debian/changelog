@@ -1,0 +1,70 @@
+alh (1.2.35-1) unstable; urgency=medium
+
+  * remove libxp-dev dependency
+  * set compat level to 9
+  * epics-debhelper>=8.12 uses LINKER_USE_RPATH instead of USE_RPATH
+  * update dependencies
+  * fix i386 build
+  * DEB_DH_STRIP_ARGS is deprecated
+  * New upstream version 1.2.35
+  * use source format 3.0 quilt
+
+ -- Christoph Schröder <christoph.schroeder@helmholtz-berlin.de>  Thu, 12 Mar 2020 15:33:33 +0100
+
+alh (1.2.26-3) unstable; urgency=medium
+
+  * Build against Base 3.15.3
+  * Missing -lpthread
+  * Depend on epics-extensions-dev w/ RULES_PYTHON fix
+
+ -- Michael Davidsaver <mdavidsaver@gmail.com>  Fri, 11 Mar 2016 09:29:02 -0500
+
+alh (1.2.26-2.1) unstable; urgency=low
+
+  * Rebuild for epics 3.14.12
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Wed, 05 Dec 2012 17:56:34 -0500
+
+alh (1.2.26-2) squeeze-2012A; urgency=low
+
+  * Add BEEPCMD option to run as shell command instead of XBell()
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Tue, 09 Oct 2012 18:58:25 -0400
+
+alh (1.2.26-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Thu, 08 Mar 2012 11:47:08 -0500
+
+alh (1.2.25-3) unstable; urgency=low
+
+  * Base in /usr/lib/epics
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Mon, 16 Aug 2010 17:27:51 -0400
+
+alh (1.2.25-2) unstable; urgency=low
+
+  * Update dependencies
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Sun, 27 Dec 2009 18:19:29 -0500
+
+alh (1.2.25-1) unstable; urgency=low
+
+  * New Upstream Version
+  * Move html manual to alh-doc package
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Fri, 04 Dec 2009 10:17:13 -0500
+
+alh (1.2.24-2) unstable; urgency=low
+
+  * Fix dependencies
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Fri, 04 Dec 2009 10:04:35 -0500
+
+alh (1.2.24-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Fri, 28 Aug 2009 13:24:29 -0400
+

@@ -1,0 +1,22 @@
+From: =?utf-8?q?Christoph_Schr=C3=B6der?=
+ <christoph.schroeder@helmholtz-berlin.de>
+Date: Wed, 11 Mar 2020 14:10:53 +0100
+Subject: change TOP
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 70a2781..6547e49 100755
+--- a/Makefile
++++ b/Makefile
+@@ -15,7 +15,7 @@
+ #
+ # Makefile,v 1.22 2013/04/22 16:07:23 jba Exp
+ #
+-TOP=../..
++TOP=.
+ include $(TOP)/configure/CONFIG
+ 
+ #===========================
